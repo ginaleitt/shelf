@@ -15,7 +15,7 @@ export function rowToRaw(row: string[]): RawBookmarkRow {
   COLUMNS.forEach((col, i) => {
     obj[col] = row[i] ?? "";
   });
-  return obj as RawBookmarkRow;
+  return obj as unknown as RawBookmarkRow;
 }
 
 /** Converts a RawBookmarkRow into a typed Bookmark */
