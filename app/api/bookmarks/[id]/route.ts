@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { getSheetsClient, getSheetId } from "@/lib/sheets";
 import { bookmarkToRow, rawToBookmark, rowToRaw } from "@/lib/bookmarkUtils";
+import { validateSession } from "@/lib/auth";
 import { Bookmark } from "@/types/bookmark";
 
 const RANGE = "Bookmarks!A2:J";
@@ -37,10 +38,11 @@ async function findBookmarkRow(
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const result = await findBookmarkRow(params.id);
+    const result = await findBookmarkRow(id);
     if (!result) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -53,13 +55,14 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = validateSession(request);
   if (authError) return authError;
+  const { id } = await params;
 
   try {
-    const result = await findBookmarkRow(params.id);
+    const result = await findBookmarkRow(id);
     if (!result) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -68,8 +71,8 @@ export async function PUT(
     const updated: Bookmark = {
       ...result.bookmark,
       ...body,
-      id: params.id, // never allow ID to be overwritten
-      dateAdded: result.bookmark.dateAdded, // preserve original date
+      id: id,
+      dateAdded: result.bookmark.dateAdded,
     };
 
     const sheets = getSheetsClient();
@@ -96,13 +99,14 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = validateSession(request);
   if (authError) return authError;
+  const { id } = await params;
 
   try {
-    const result = await findBookmarkRow(params.id);
+    const result = await findBookmarkRow(id);
     if (!result) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -145,13 +149,4 @@ export async function DELETE(
     console.error("DELETE /api/bookmarks/[id] error:", error);
     return NextResponse.json({ error: "Failed to delete bookmark" }, { status: 500 });
   }
-}
-
-function validateSession(request: Request): NextResponse | null {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-  const validToken = process.env.SESSION_SECRET;
-  if (!token || token !== validToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
 }

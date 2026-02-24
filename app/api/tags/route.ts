@@ -11,6 +11,7 @@
  */
 import { NextResponse } from "next/server";
 import { getSheetsClient, getSheetId } from "@/lib/sheets";
+import { validateSession } from "@/lib/auth";
 
 const RANGE = "Tags!A2:A";
 
@@ -127,11 +128,3 @@ export async function DELETE(request: Request) {
   }
 }
 
-function validateSession(request: Request): NextResponse | null {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-  const validToken = process.env.SESSION_SECRET;
-  if (!token || token !== validToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}

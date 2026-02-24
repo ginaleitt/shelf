@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { getSheetsClient, getSheetId } from "@/lib/sheets";
 import { bookmarkToRow, rawToBookmark, rowToRaw } from "@/lib/bookmarkUtils";
+import { validateSession } from "@/lib/auth";
 import { Bookmark } from "@/types/bookmark";
 import { randomUUID } from "crypto";
 
@@ -87,12 +88,3 @@ export async function POST(request: Request) {
   }
 }
 
-/** Validates the session token from the Authorization header */
-function validateSession(request: Request): NextResponse | null {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-  const validToken = process.env.SESSION_SECRET;
-  if (!token || token !== validToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}

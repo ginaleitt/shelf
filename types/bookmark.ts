@@ -2,7 +2,7 @@
  * Core data types matching the Google Sheet column structure.
  */
 
-export type Category = "Manga" | "Book" | "Video" | "Game";
+export type Category = string;
 export type Visibility = "public" | "private";
 
 export interface Bookmark {

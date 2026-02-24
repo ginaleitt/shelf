@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { getSheetsClient, getSheetId } from "@/lib/sheets";
 import { rawToBookmark, rowToRaw } from "@/lib/bookmarkUtils";
+import { validateSession } from "@/lib/auth";
 import { Bookmark } from "@/types/bookmark";
 
 const RANGE = "Bookmarks!A2:J";
@@ -39,11 +40,3 @@ export async function GET(request: Request) {
   }
 }
 
-function validateSession(request: Request): NextResponse | null {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-  const validToken = process.env.SESSION_SECRET;
-  if (!token || token !== validToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}
