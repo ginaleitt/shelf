@@ -1,11 +1,9 @@
 /**
- * POST /api/auth/login
- * Compares submitted password against ADMIN_PASSWORD env var.
- * Returns a session token on success.
+ * POST /api/auth/login — validates password, returns signed token
+ * DELETE /api/auth/login — logout (client just discards the token)
  */
 import { NextResponse } from "next/server";
-import { randomUUID } from "crypto";
-import { addToken, removeToken } from "@/lib/tokenStore";
+import { createToken } from "@/lib/tokenStore";
 
 export async function POST(request: Request) {
   try {
@@ -24,9 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
-    const token = randomUUID();
-    addToken(token);
-
+    const token = createToken();
     return NextResponse.json({ token });
   } catch (error) {
     console.error("POST /api/auth/login error:", error);
@@ -34,8 +30,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-  if (token) removeToken(token);
+export async function DELETE() {
+  // Stateless tokens — nothing to invalidate server-side
   return NextResponse.json({ success: true });
 }
